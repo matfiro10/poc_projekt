@@ -1,0 +1,30 @@
+# Venv
+venv/
+.venv/
+env/
+
+# Build & Compilation (PyInstaller / Nuitka)
+build/
+dist/
+*.spec
+*.exe
+*.app
+*.dmg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# temp & tests files
+*.csv
+*.xlsx
+*.png
+!assets/*.png
+
+# IDE 
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
