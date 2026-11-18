@@ -6,10 +6,12 @@ import numpy as np
 from numpy.typing import NDArray
 from PySide6.QtGui import QPixmap
 from algorithms.nn_interp import nn_interp_vectorized
+from algorithms.bicubic_interp import bicubic_interp
 from utils.qt_image_utils import (
     ImageIOError,
     load_image_as_numpy,
     numpy_to_qpixmap,
+    save_numpy_image,
 )
 from constants import MAX_OUTPUT_MEGAPIXELS, ImageArray
 
@@ -148,8 +150,9 @@ class ImageUpscaler:
                 )
        
             case InterpolationAlgorithm.BICUBIC:
-                raise NotImplementedError("Bicubic interpolation not implemented yet.")
-       
+                self._processed_image = bicubic_interp(
+                    self._original_image, factor, factor
+                )
             case _ as unreachable:
                 assert_never(unreachable)
 
@@ -170,3 +173,13 @@ class ImageUpscaler:
 
         assert self._processed_image is not None
         return numpy_to_qpixmap(self._processed_image)
+
+
+    def save_result(self, file_path: str | Path, auto_process: bool = True) -> None:
+        """Zapisuje przeskalowany obraz do pliku na dysku."""
+        if self._processed_image is None:
+            if not auto_process:
+                raise ImageIOError("Obraz nie został jeszcze przeskalowany.")
+            self.process()
+        assert self._processed_image is not None
+        save_numpy_image(self._processed_image, file_path)

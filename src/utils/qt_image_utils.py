@@ -122,3 +122,25 @@ def numpy_to_qpixmap(arr: ImageArray) -> QPixmap:
         raise ImageIOError("Nie udało się utworzyć obiektu QImage z tablicy NumPy.")
 
     return QPixmap.fromImage(qimg)
+
+
+def save_numpy_image(arr: ImageArray, file_path: str | Path) -> None:
+    """Zapisuje tablicę obrazu NumPy na dysk za pomocą QPixmap/QImage."""
+    if not file_path:
+        raise ImageIOError("Nie podano docelowej ścieżki zapisu pliku.")
+
+    path = Path(file_path)
+    if not path.suffix:
+        raise ImageIOError(
+            f"Nazwa pliku '{path.name}' musi zawierać rozszerzenie (np. .png, .jpg)."
+        )
+
+    # Upewnij się, że katalog docelowy istnieje
+    if path.parent and not path.parent.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+    pixmap: QPixmap = numpy_to_qpixmap(arr)
+    if not pixmap.save(str(path)):
+        raise ImageIOError(
+            f"Nie udało się zapisać obrazu do pliku '{path}'."
+        )
