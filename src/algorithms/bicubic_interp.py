@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-
-from constants import ImageArray
+from src.constants import ImageArray
 
 
 def _cubic_weights(d: NDArray[np.float64], a: float = -0.75) -> NDArray[np.float64]:

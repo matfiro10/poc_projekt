@@ -6,7 +6,7 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import QImage, QImageReader, QPixmap
 from openpyxl import reader
 
-from constants import MAX_INPUT_MEGAPIXELS, QT_ALLOCATION_LIMIT_MB, ImageArray
+from src.constants import MAX_INPUT_MEGAPIXELS, QT_ALLOCATION_LIMIT_MB, ImageArray
 
 class ImageIOError(Exception):
     pass

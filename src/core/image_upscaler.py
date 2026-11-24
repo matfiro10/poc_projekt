@@ -1,19 +1,16 @@
 from enum import IntEnum, StrEnum
 from pathlib import Path
 from typing import assert_never
-from unittest import case
-import numpy as np
-from numpy.typing import NDArray
 from PySide6.QtGui import QPixmap
-from algorithms.nn_interp import nn_interp_vectorized
-from algorithms.bicubic_interp import bicubic_interp
-from utils.qt_image_utils import (
+from src.algorithms.nn_interp import nn_interp_vectorized
+from src.algorithms.bicubic_interp import bicubic_interp
+from src.utils.qt_image_utils import (
     ImageIOError,
     load_image_as_numpy,
     numpy_to_qpixmap,
     save_numpy_image,
 )
-from constants import MAX_OUTPUT_MEGAPIXELS, ImageArray
+from src.constants import MAX_OUTPUT_MEGAPIXELS, ImageArray
 
 
 class ScaleFactor(IntEnum):
