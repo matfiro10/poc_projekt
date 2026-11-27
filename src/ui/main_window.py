@@ -1,5 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6 import QtGui
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -8,7 +9,10 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
+
 )
+
+
 
 from src.core.image_upscaler import ImageUpscaler, InterpolationAlgorithm, ScaleFactor
 from src.ui.sync_image_view import SyncImageView
@@ -19,7 +23,13 @@ from src.ui.ui_helpers import (
     show_info,
     show_warning,
 )
+from src.ui.translations import (text)
 from src.utils.qt_image_utils import ImageIOError
+from pathlib import Path
+
+
+
+ICONS_DIR = Path(__file__).resolve().parent.parent / "icons"
 
 
 class MainWindow(QMainWindow):
@@ -27,6 +37,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self._upscaler = ImageUpscaler()
+        self._lang = "pl"
         self._init_ui()
         self._connect_signals()
 
@@ -142,6 +153,15 @@ class MainWindow(QMainWindow):
             }
         """)
 
+        self._center_button_change = QPushButton("")
+        self._center_button_change.setIcon(QIcon(str(ICONS_DIR / "pl.svg")))
+        self._center_button_change.setStyleSheet("""
+            border: none;
+            background-color: #F0F0F0;
+        """)
+        self._center_button_change.setIconSize(QSize(70, 60))
+
+
         self._center_layout.addWidget(self._center_button_load)
         self._center_layout.addWidget(self._center_button_other)
         self._center_layout.addWidget(self._center_button_rest)
@@ -151,6 +171,7 @@ class MainWindow(QMainWindow):
         self._center_layout.addWidget(self._center_chose_method)
         self._center_layout.addWidget(self._center_scale_label)
         self._center_layout.addWidget(self._center_chose_scale)
+        self._center_layout.addWidget(self._center_button_change)
 
         self._content_layout.addWidget(self._center_panel)
         self._center_layout.addStretch()
@@ -172,14 +193,21 @@ class MainWindow(QMainWindow):
 
         self._content_layout.addWidget(self._right_panel, 1)
 
+        self._apply_language()
+
+
+
+
     def _connect_signals(self) -> None:
         self._center_button_load.clicked.connect(self._on_load_image)
         self._center_button_other.clicked.connect(self._on_process_image)
         self._center_button_rest.clicked.connect(self._on_reset)
         self._center_button_export.clicked.connect(self._on_export)
         self._center_button_fit.clicked.connect(self._on_fit_view)
+        self._center_button_change.clicked.connect(self._on_change_language)
         self._center_chose_method.currentIndexChanged.connect(self._on_method_changed)
         self._center_chose_scale.currentIndexChanged.connect(self._on_scale_changed)
+
 
         self._left_view.viewChanged.connect(
             lambda: self._right_view.sync_from(self._left_view)
@@ -196,27 +224,27 @@ class MainWindow(QMainWindow):
         try:
             self._upscaler.load_image(file_path)
         except ImageIOError as exc:
-            show_warning(self, "Błąd wczytywania", str(exc))
+            show_warning(self, self.t["msg_load_error"], str(exc))
             return
 
         orig_pixmap = self._upscaler.get_original_pixmap()
         self._left_view.set_pixmap(orig_pixmap)
         self._left_view.fit_image()
 
-        self._right_view.clear_image("Gotowy do skalowania")
+        self._right_view.clear_image(self.t["right_view_scale"])
         self._info_label.setText(
             f"Oryginał: {orig_pixmap.width()}x{orig_pixmap.height()} px"
         )
 
     def _on_process_image(self) -> None:
         if not self._upscaler.has_image:
-            show_info(self, "Info", "Najpierw wczytaj obraz.")
+            show_info(self, self.t["msg_info_title"], self.t["msg_no_image"])
             return
 
         try:
             res = self._upscaler.process()
         except ImageIOError as exc:
-            show_warning(self, "Błąd przetwarzania", str(exc))
+            show_warning(self, self.t["msg_process_error"], str(exc))
             return
 
         orig_pixmap = self._upscaler.get_original_pixmap()
@@ -244,9 +272,12 @@ class MainWindow(QMainWindow):
                 self._center_chose_method.currentData()
             ),
         )
-        self._left_view.clear_image("Obraz")
-        self._right_view.clear_image("Wynik")
-        self._info_label.setText("Skalowanie obrazu")
+        self._left_view.clear_image("")
+        self._right_view.clear_image("")
+        self._info_label.setText("")
+
+        self._apply_language()
+
 
     def _on_export(self) -> None:
         if not self._upscaler.has_image:
@@ -267,7 +298,7 @@ class MainWindow(QMainWindow):
                 )
                 self._right_view.sync_from(self._left_view)
         except ImageIOError as exc:
-            show_warning(self, "Błąd zapisu", str(exc))
+            show_warning(self, self.t["msg_save_error"], str(exc))
 
     def _on_fit_view(self) -> None:
         self._left_view.fit_image()
@@ -284,4 +315,64 @@ class MainWindow(QMainWindow):
         self._upscaler.scale = selected_scale
         if self._upscaler.has_image:
             self._right_view.clear_image(f"Zmieniono skalę na: {selected_scale.label}")
+
+
+    def _apply_language(self) -> None:
+        self.t = text[self._lang]
+
+        self.setWindowTitle(self.t["window_title"])
+        self._center_button_load.setText(self.t["button_load"])
+        self._center_button_other.setText(self.t["button_other"])
+        self._center_button_rest.setText(self.t["button_rest"])
+        self._center_button_export.setText(self.t["button_export"])
+        self._center_button_fit.setText(self.t["button_fit"])
+        self._center_opis_label.setText(self.t["opis_label"])
+        self._center_scale_label.setText(self.t["scale_label"])
+
+        self._flag_on_change()
+
+        if not self._upscaler.has_image:
+            self._info_label.setText(self.t["info_label"])
+
+
+        if not self._left_view.has_pixmap():
+            self._left_view.clear_image(self.t["left_view"])
+
+        if not self._right_view.has_pixmap():
+            if self._upscaler.has_image:
+                self._right_view.clear_image(self.t["right_view_scale"])
+            else:
+                self._right_view.clear_image(self.t["right_view"])
+
+
+
+
+
+
+
+
+
+
+
+
+    def _on_change_language(self) -> None:
+        if self._lang == "pl":
+            self._lang = "en"
+        else:
+            self._lang = "pl"
+
+        self._apply_language()
+
+
+    def _flag_on_change(self) -> None:
+        if self._lang == "pl":
+            self._center_button_change.setIcon(QIcon(str(ICONS_DIR / "pl.svg")))
+        else:
+            self._center_button_change.setIcon(QIcon(str(ICONS_DIR / "gb.svg")))
+
+
+
+
+
+
 
