@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
         try:
             self._upscaler.load_image(file_path)
         except ImageIOError as exc:
-            show_warning(self, "Błąd wczytywania", str(exc))
+            show_warning(self, self.t["msg_load_error"], str(exc))
             return
 
         orig_pixmap = self._upscaler.get_original_pixmap()
@@ -238,13 +238,13 @@ class MainWindow(QMainWindow):
 
     def _on_process_image(self) -> None:
         if not self._upscaler.has_image:
-            show_info(self, "Info", "Najpierw wczytaj obraz.")
+            show_info(self, self.t["msg_info_title"], self.t["msg_no_image"])
             return
 
         try:
             res = self._upscaler.process()
         except ImageIOError as exc:
-            show_warning(self, "Błąd przetwarzania", str(exc))
+            show_warning(self, self.t["msg_process_error"], str(exc))
             return
 
         orig_pixmap = self._upscaler.get_original_pixmap()
@@ -298,7 +298,7 @@ class MainWindow(QMainWindow):
                 )
                 self._right_view.sync_from(self._left_view)
         except ImageIOError as exc:
-            show_warning(self, "Błąd zapisu", str(exc))
+            show_warning(self, self.t["msg_save_error"], str(exc))
 
     def _on_fit_view(self) -> None:
         self._left_view.fit_image()
@@ -343,6 +343,8 @@ class MainWindow(QMainWindow):
                 self._right_view.clear_image(self.t["right_view_scale"])
             else:
                 self._right_view.clear_image(self.t["right_view"])
+
+
 
 
 
